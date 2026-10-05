@@ -1,4 +1,5 @@
-"""易次元排行榜抓取：每次运行抓取一次完整的付费榜和活跃榜，按天追加到 data/榜单名_日期.csv。
+"""易次元排行榜抓取：每次运行抓取一次完整的付费榜和活跃榜（含每部作品的人气、收藏、点赞），
+按天追加到 data/榜单名_日期.csv。
 
 同一个榜单版本只记录一次，所以重复运行不会产生重复数据。
 Excel 由 make_excel.py 根据 CSV 生成。
@@ -23,7 +24,9 @@ PAGE_SIZE = 20
 BJ = timezone(timedelta(hours=8))  # 云端服务器是 UTC，统一用北京时间
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
-COLUMNS = ["榜单更新时间", "抓取时间", "排名", "作品名", "作品ID"]
+COLUMNS = ["榜单更新时间", "抓取时间", "排名", "作品名", "作品ID", "人气", "收藏", "点赞"]
+# 榜单接口里已带有作品主页上的人气/收藏/点赞，不用再逐个请求作品主页
+METRICS = {"人气": "popularity", "收藏": "revisedFavoriteCount", "点赞": "revisedLikeCount"}
 TIME_FMT = "%Y-%m-%d %H:%M"
 
 
@@ -82,6 +85,7 @@ def main():
             sys.exit(f"{board} 没有抓到数据")
         new = pd.DataFrame([
             [publish_str, crawl_str, i + 1, it["gameName"], it["id"]]
+            + [it.get(key, "") for key in METRICS.values()]
             for i, it in enumerate(items)
         ], columns=COLUMNS).astype(str)
 

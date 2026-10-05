@@ -2,7 +2,7 @@ name: 生成Excel
 
 on:
   schedule:
-    # 每天北京时间 00:20 生成前一天的日报，并更新付费榜总集
+    # 每天北京时间 00:20 生成前一天的日报，并更新总集
     - cron: "20 16 * * *"
   workflow_dispatch:
     inputs:
