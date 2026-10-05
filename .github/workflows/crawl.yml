@@ -1,0 +1,35 @@
+name: 抓取付费榜
+
+on:
+  schedule:
+    # 每 5 分钟尝试一次（GitHub 定时任务常有延迟，多跑几次保证每版榜单都能抓到；重复的版本会自动跳过）
+    - cron: "2-59/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python crawl.py
+      - name: 提交数据
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet && exit 0
+          git commit -m "数据 $(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M')"
+          git pull --rebase
+          git push
