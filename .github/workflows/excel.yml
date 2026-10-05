@@ -2,7 +2,7 @@ name: 生成Excel
 
 on:
   schedule:
-    # 每天北京时间 00:20 生成前一天的 Excel
+    # 每天北京时间 00:20 生成前一天的日报，并更新付费榜总集
     - cron: "20 16 * * *"
   workflow_dispatch:
     inputs:
@@ -33,7 +33,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
+          git add -A
           git diff --cached --quiet && exit 0
           git commit -m "Excel $(TZ=Asia/Shanghai date '+%Y-%m-%d')"
           git pull --rebase
